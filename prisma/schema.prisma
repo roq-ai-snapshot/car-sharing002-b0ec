@@ -1,0 +1,50 @@
+generator client {
+  provider = "prisma-client-js"
+  previewFeatures = ["clientExtensions"]
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model booking {
+  id         String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  start_time DateTime @db.Timestamp(6)
+  end_time   DateTime @db.Timestamp(6)
+  user_id    String   @db.Uuid
+  car_id     String   @db.Uuid
+  car        car      @relation(fields: [car_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  user       user     @relation(fields: [user_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+}
+
+model car {
+  id           String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  make         String    @db.VarChar(255)
+  model        String    @db.VarChar(255)
+  year         Int
+  location     String    @db.VarChar(255)
+  availability Boolean
+  company_id   String    @db.Uuid
+  booking      booking[]
+  company      company   @relation(fields: [company_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+}
+
+model company {
+  id       String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name     String @db.VarChar(255)
+  owner_id String @db.Uuid
+  car      car[]
+  user     user   @relation(fields: [owner_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+}
+
+model user {
+  id          String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  email       String?   @unique @db.VarChar(255)
+  firstName   String?   @db.VarChar(255)
+  lastName    String?   @db.VarChar(255)
+  roq_user_id String    @db.VarChar(255)
+  tenant_id   String    @db.VarChar(255)
+  booking     booking[]
+  company     company[]
+}
